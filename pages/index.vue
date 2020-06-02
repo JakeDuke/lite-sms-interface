@@ -1,6 +1,6 @@
 <template>
   <div>
-      <b-form @submit.prevent="login">
+    <b-form @submit.prevent="login">
       <b-form-group
         id="input-group-1"
         label="Please log-in"
@@ -33,6 +33,7 @@
 </template>
 
 <script>
+/*eslint-disable */
 import md5 from 'js-md5'
 export default {
   components: {
@@ -41,20 +42,23 @@ export default {
     return {
       userLogin: '',
       userPW: '',
-      call: '1302885011.45',
       noError: true
-    }
-  },
-  computed: {
-    time () {
-      return Date.now()
     }
   },
   methods: {
     login () {
-      const pw = md5(md5(this.userPW) + this.call)
-      console.log(pw)
-      this.$axios.$post(`https://api.profisms.cz/index.php?CTRL=user_login&_service=general&_login=${this.userLogin}&_password=${pw}&_call=${this.call}`)
+      const { call } = this.$store.state
+      const pw = md5(md5(this.userPW) + call)
+      this.$axios.$post(`https://api.profisms.cz/index.php?CTRL=user_login&_service=general&_login=${this.userLogin}&_password=${pw}&_call=${call}`)
+      .then(res => {
+        if (res.error.code === 0) {
+          this.$store.commit('login', { login: this.userLogin, password: this.userPW })
+          this.$router.push('/userInfo')
+        } else {
+          console.log(res.error)
+          this.noError = false
+        }
+      })
     }
   }
 }

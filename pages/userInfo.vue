@@ -2,16 +2,16 @@
   <div>
     <b-tabs content-class="mt-3">
       <b-tab title="Account" active>
-        <b-table hover :fields="accountFields" :items="accounts" :responsive="true" />
+        <b-table hover :fields="accountFields" :items="accounts" :responsive="true" outlined />
       </b-tab>
       <b-tab title="Payment Info">
-        <b-table hover :items="getPaymentInfo" :responsive="true" />
+        <b-table hover :items="getPaymentInfo" :responsive="true" outlined :stacked="true" />
       </b-tab>
       <b-tab title="Address">
-        <b-table hover :items="addresses" :responsive="true" />
+        <b-table hover :items="addresses" :responsive="true" outlined :stacked="true" />
       </b-tab>
       <b-tab title="Contact">
-        <b-table hover :items="contacts" :responsive="true" />
+        <b-table hover :items="contacts" :responsive="true" outlined />
       </b-tab>
     </b-tabs>
   </div>
@@ -19,12 +19,10 @@
 
 <script>
 /*eslint-disable */
+import md5 from 'js-md5'
 export default {
   data () {
     return {
-      userLogin: '',
-      userPW: '',
-      call: '1302885011.45',
       noError: true,
       accounts: [],
       addresses: [],
@@ -34,7 +32,7 @@ export default {
 
   computed: {
     accountFields () {
-      if (this.accounts.length > 0) {
+      if (this.accounts && this.accounts.length > 0) {
         const fields = Object.keys(this.accounts[0])
         fields.pop()
         return fields
@@ -43,7 +41,7 @@ export default {
       }
     },
     getPaymentInfo () {
-      if (this.accounts.length > 0) {
+      if (this.accounts && this.accounts.length > 0) {
         let payInfo = []
         this.accounts.map(a => {
           a.payment_info['number'] = a.number
@@ -58,7 +56,9 @@ export default {
 
   methods: {
     getInfo () {
-      this.$axios.$get(`https://api.profisms.cz/index.php?CTRL=user_info&_service=general&_login=user&_password=67060092181f11e9a41ea8789a111415&_call=1302885011.45`)
+      const { login, password, call } = this.$store.state
+      const pw = md5(md5(password) + call)
+      this.$axios.$get(`https://api.profisms.cz/index.php?CTRL=user_info&_service=general&_login=${login}&_password=${pw}&_call=${call}`)
         .then((res) => {
           console.log(res)
           this.accounts = res.data.account
