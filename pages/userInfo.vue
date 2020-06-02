@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div class="user-main-info my-5">
+      <h3>{{ login }}</h3>
+      <img src="https://via.placeholder.com/150" alt="">
+    </div>
     <b-tabs content-class="mt-3">
       <b-tab title="Account" active>
         <b-table hover :fields="accountFields" :items="accounts" :responsive="true" outlined />
@@ -20,10 +24,12 @@
 <script>
 /*eslint-disable */
 import md5 from 'js-md5'
+import store from 'store2'
 export default {
   data () {
     return {
       noError: true,
+      login: '',
       accounts: [],
       addresses: [],
       contacts: []
@@ -56,7 +62,9 @@ export default {
 
   methods: {
     getInfo () {
-      const { login, password, call } = this.$store.state
+      const { call } = this.$store.state
+      const login = store.get('login')
+      const password = store.get('password')
       const pw = md5(md5(password) + call)
       this.$axios.$get(`https://api.profisms.cz/index.php?CTRL=user_info&_service=general&_login=${login}&_password=${pw}&_call=${call}`)
         .then((res) => {
@@ -64,6 +72,7 @@ export default {
           this.accounts = res.data.account
           this.addresses = res.data.address
           this.contacts = res.data.contact
+          this.login = res.data.login
         })
     }
   },
@@ -75,5 +84,10 @@ export default {
 </script>
 
 <style>
-
+.user-main-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 </style>

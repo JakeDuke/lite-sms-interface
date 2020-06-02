@@ -35,6 +35,7 @@
 <script>
 /*eslint-disable */
 import md5 from 'js-md5'
+import store from 'store2'
 export default {
   components: {
   },
@@ -52,8 +53,10 @@ export default {
       this.$axios.$post(`https://api.profisms.cz/index.php?CTRL=user_login&_service=general&_login=${this.userLogin}&_password=${pw}&_call=${call}`)
       .then(res => {
         if (res.error.code === 0) {
-          this.$store.commit('login', { login: this.userLogin, password: this.userPW })
+          store.set('login', this.userLogin)
+          store.set('password', this.userPW)
           this.$router.push('/userInfo')
+
         } else {
           console.log(res.error)
           this.noError = false
