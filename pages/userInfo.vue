@@ -66,6 +66,25 @@
             Send SMS
           </b-button>
         </b-form>
+        <br>
+        <h3 v-if="smsListError">Can't get SMS list</h3>
+        <div v-else>
+          <b-table
+            hover
+            :items="smsList"
+            :responsive="true"
+            outlined
+            small
+          />
+        </div>
+        <div class="d-flex justify-content-between">
+          <b-button variant="primary" @click="smsStart -= 10" :disabled="smsStart === 0">
+            Prev
+          </b-button>
+          <b-button variant="primary" @click="smsStart += 10">
+            Next
+          </b-button>
+        </div>
       </b-col>
     </b-row>
   </div>
@@ -86,7 +105,14 @@ export default {
       contacts: [],
       phoneNumber: '',
       smsText: '',
-      smsStart: 0
+      smsStart: 0,
+      smsList: [],
+      smsListError: false
+    }
+  },
+  watch : {
+    smsStart(val) {
+      this.getSmsListing()
     }
   },
 
@@ -126,23 +152,35 @@ export default {
         pw
       }
     },
+    processSmsIds (ids) {
+      if (ids && ids.length > 0) {
+        const result = []
+        ids.forEach((prop,index)=> result.push({ number: index + this.smsStart, id: prop }))
+        this.smsList = result
+      } else {
+        this.smsList = []
+      }
+    },
     getInfo () {
       const { call } = this.$store.state
       this.$axios.$get(`${this.url}CTRL=user_info&_service=general&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_call=${call}`)
         .then((res) => {
-          console.log(res)
           this.accounts = res.data.account
           this.addresses = res.data.address
           this.contacts = res.data.contact
           this.login = res.data.login
         })
     },
-    getSmsLinting () {
-      // const call = '1294886598.4164'
+    getSmsListing () {
       const { call } = this.$store.state
       this.$axios.$get(`${this.url}CTRL=sms_list&_service=sms&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_call=${call}&count=10&start=${this.smsStart}`)
         .then((res) => {
-          console.log(res)
+          if (res.data.length > 0) {
+            this.processSmsIds(res.data)
+            return res.data
+          } else {
+            this.smsListError = true
+          }
         })
     },
     sendSms () {
@@ -165,7 +203,7 @@ export default {
 
   mounted () {
     this.getInfo()
-    this.getSmsLinting()
+    this.getSmsListing()
   }
 }
 </script>
