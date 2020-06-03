@@ -10,7 +10,8 @@
     </b-row>
     <b-row>
       <b-col>
-        <b-tabs class="tabs">
+        <h3 v-if="infoError" class="danger">Server error</h3>
+        <b-tabs v-else class="tabs">
           <b-tab title="Account" active>
             <b-table
               hover
@@ -67,7 +68,7 @@
           </b-button>
         </b-form>
         <br>
-        <h3 v-if="smsListError">Can't get SMS list</h3>
+        <h3 v-if="smsListError" class="danger">Server error</h3>
         <div v-else>
           <b-table
             hover
@@ -107,7 +108,8 @@ export default {
       smsText: '',
       smsStart: 0,
       smsList: [],
-      smsListError: false
+      smsListError: false,
+      infoError: false
     }
   },
   watch : {
@@ -165,10 +167,14 @@ export default {
       const { call } = this.$store.state
       this.$axios.$get(`${this.url}CTRL=user_info&_service=general&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_call=${call}`)
         .then((res) => {
-          this.accounts = res.data.account
-          this.addresses = res.data.address
-          this.contacts = res.data.contact
-          this.login = res.data.login
+          if (res.data) {
+            this.accounts = res.data.account
+            this.addresses = res.data.address
+            this.contacts = res.data.contact
+            this.login = res.data.login
+          } else {
+            this.infoError = true
+          }
         })
     },
     getSmsListing () {
@@ -210,6 +216,7 @@ export default {
 
 <style lang="scss" scoped>
 .page-wrap {
+  width: 100%;
   margin-bottom: auto;
   padding: 30px 0;
 
