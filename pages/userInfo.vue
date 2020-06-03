@@ -85,7 +85,8 @@ export default {
       addresses: [],
       contacts: [],
       phoneNumber: '',
-      smsText: ''
+      smsText: '',
+      smsStart: 0
     }
   },
 
@@ -114,12 +115,20 @@ export default {
   },
 
   methods: {
-    getInfo () {
+    getLoginAndPw () {
       const { call } = this.$store.state
       const login = store.get('login')
       const password = store.get('password')
       const pw = md5(md5(password) + call)
-      this.$axios.$get(`${this.url}CTRL=user_info&_service=general&_login=${login}&_password=${pw}&_call=${call}`)
+
+      return {
+        login,
+        pw
+      }
+    },
+    getInfo () {
+      const { call } = this.$store.state
+      this.$axios.$get(`${this.url}CTRL=user_info&_service=general&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_call=${call}`)
         .then((res) => {
           console.log(res)
           this.accounts = res.data.account
@@ -128,12 +137,17 @@ export default {
           this.login = res.data.login
         })
     },
+    getSmsLinting () {
+      // const call = '1294886598.4164'
+      const { call } = this.$store.state
+      this.$axios.$get(`${this.url}CTRL=sms_list&_service=sms&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_call=${call}&count=10&start=${this.smsStart}`)
+        .then((res) => {
+          console.log(res)
+        })
+    },
     sendSms () {
       const { call } = this.$store.state
-      const password = store.get('password')
-      const pw = md5(md5(password) + call)
-      console.log(pw)
-      this.$axios.$post(`${this.url}CTRL=sms&_login=user&_password=${pw}&_service=sms&_call=${call}&text=${this.smsText}&msisdn=${this.phoneNumber}`)
+      this.$axios.$post(`${this.url}CTRL=sms&_login=${this.getLoginAndPw().login}&_password=${this.getLoginAndPw().pw}&_service=sms&_call=${call}&text=${this.smsText}&msisdn=${this.phoneNumber}`)
         .then((res) => {
           if (res.error.code === 0) {
             this.smsText = ''
@@ -151,6 +165,7 @@ export default {
 
   mounted () {
     this.getInfo()
+    this.getSmsLinting()
   }
 }
 </script>
