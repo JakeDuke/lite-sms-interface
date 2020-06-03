@@ -10,26 +10,28 @@
     </b-row>
     <b-row>
       <b-col>
-        <h3 v-if="infoError" class="danger">Server error</h3>
+        <h3 v-if="infoError" class="text-danger">
+          Server error
+        </h3>
         <b-tabs v-else class="tabs">
           <b-tab title="Account" active>
             <b-table
-              hover
               :fields="accountFields"
               :items="accounts"
               :responsive="true"
-              outlined
               :stacked="true"
+              outlined
+              hover
             />
           </b-tab>
           <b-tab title="Payment Info">
-            <b-table hover :items="getPaymentInfo" :responsive="true" outlined :stacked="true" />
+            <b-table :items="getPaymentInfo" :responsive="true" :stacked="true" outlined hover />
           </b-tab>
           <b-tab title="Address">
-            <b-table hover :items="addresses" :responsive="true" outlined :stacked="true" />
+            <b-table :items="addresses" :responsive="true" :stacked="true" outlined hover />
           </b-tab>
           <b-tab title="Contact">
-            <b-table hover :items="contacts" :responsive="true" outlined :stacked="true" />
+            <b-table :items="contacts" :responsive="true" :stacked="true" outlined hover />
           </b-tab>
         </b-tabs>
       </b-col>
@@ -60,29 +62,31 @@
           <b-form-invalid-feedback :state="smsSent">
             <h3>Error occurred, try again later</h3>
           </b-form-invalid-feedback>
-           <b-form-valid-feedback :state="smsSent">
-              <h3>SMS was successfully sent</h3>
-            </b-form-valid-feedback>
+          <b-form-valid-feedback :state="smsSent">
+            <h3>SMS was successfully sent</h3>
+          </b-form-valid-feedback>
           <b-button type="submit" variant="primary">
             Send SMS
           </b-button>
         </b-form>
         <br>
-        <h3 v-if="smsListError" class="danger">Server error</h3>
+        <h3 v-if="smsListError" class="text-danger">
+          Server error
+        </h3>
         <div v-else>
           <b-table
-            hover
             :items="smsList"
             :responsive="true"
             outlined
+            hover
             small
           />
         </div>
         <div class="d-flex justify-content-between">
-          <b-button variant="primary" @click="smsStart -= 10" :disabled="smsStart === 0">
+          <b-button @click="smsStart -= 10" :disabled="smsStart === 0" variant="primary">
             Prev
           </b-button>
-          <b-button variant="primary" @click="smsStart += 10">
+          <b-button @click="smsStart += 10" variant="primary">
             Next
           </b-button>
         </div>
@@ -92,7 +96,6 @@
 </template>
 
 <script>
-/*eslint-disable */
 import md5 from 'js-md5'
 import store from 'store2'
 export default {
@@ -112,12 +115,6 @@ export default {
       infoError: false
     }
   },
-  watch : {
-    smsStart(val) {
-      this.getSmsListing()
-    }
-  },
-
   computed: {
     accountFields () {
       if (this.accounts && this.accounts.length > 0) {
@@ -130,18 +127,26 @@ export default {
     },
     getPaymentInfo () {
       if (this.accounts && this.accounts.length > 0) {
-        let payInfo = []
-        this.accounts.map(a => {
-          a.payment_info['number'] = a.number
+        const payInfo = []
+        this.accounts.map((a) => {
+          a.payment_info.number = a.number
           payInfo.push(a.payment_info)
         })
         return payInfo
       } else {
         return []
       }
-    },
+    }
   },
-
+  watch: {
+    smsStart (val) {
+      this.getSmsListing()
+    }
+  },
+  mounted () {
+    this.getInfo()
+    this.getSmsListing()
+  },
   methods: {
     getLoginAndPw () {
       const { call } = this.$store.state
@@ -157,7 +162,7 @@ export default {
     processSmsIds (ids) {
       if (ids && ids.length > 0) {
         const result = []
-        ids.forEach((prop,index)=> result.push({ number: index + this.smsStart, id: prop }))
+        ids.forEach((prop, index) => result.push({ number: index + this.smsStart, id: prop }))
         this.smsList = result
       } else {
         this.smsList = []
@@ -199,17 +204,11 @@ export default {
             this.smsSent = true
             setTimeout(() => this.smsSent = null, 3000)
           } else {
-            console.log(res.error)
             this.smsSent = false
             setTimeout(() => this.smsSent = null, 3000)
           }
         })
     }
-  },
-
-  mounted () {
-    this.getInfo()
-    this.getSmsListing()
   }
 }
 </script>
