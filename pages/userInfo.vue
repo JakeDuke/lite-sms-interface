@@ -42,7 +42,7 @@
             <b-form-input
               id="input-phone"
               v-model="phoneNumber"
-              type="text"
+              type="tel"
               required
               placeholder="Phone number"
             />
@@ -56,9 +56,12 @@
               placeholder="SMS text"
             />
           </b-form-group>
-          <b-form-invalid-feedback :state="noError">
-            Error occurred, try again later
+          <b-form-invalid-feedback :state="smsSent">
+            <h3>Error occurred, try again later</h3>
           </b-form-invalid-feedback>
+           <b-form-valid-feedback :state="smsSent">
+              <h3>SMS was successfully sent</h3>
+            </b-form-valid-feedback>
           <b-button type="submit" variant="primary">
             Send SMS
           </b-button>
@@ -76,7 +79,7 @@ export default {
   data () {
     return {
       url: 'https://api.profisms.cz/index.php?',
-      noError: true,
+      smsSent: null,
       login: '',
       accounts: [],
       addresses: [],
@@ -135,9 +138,12 @@ export default {
           if (res.error.code === 0) {
             this.smsText = ''
             this.phoneNumber = ''
+            this.smsSent = true
+            setTimeout(() => this.smsSent = null, 3000)
           } else {
             console.log(res.error)
-            this.noError = false
+            this.smsSent = false
+            setTimeout(() => this.smsSent = null, 3000)
           }
         })
     }
