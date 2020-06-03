@@ -33,7 +33,6 @@
 </template>
 
 <script>
-/*eslint-disable */
 import md5 from 'js-md5'
 import store from 'store2'
 export default {
@@ -51,18 +50,16 @@ export default {
       const { call } = this.$store.state
       const pw = md5(md5(this.userPW) + call)
       this.$axios.$post(`https://api.profisms.cz/index.php?CTRL=user_login&_service=general&_login=${this.userLogin}&_password=${pw}&_call=${call}`)
-      .then(res => {
-        if (res.error.code === 0) {
-          store.set('login', this.userLogin)
-          store.set('password', this.userPW)
-          this.$router.push('/userInfo')
-
-        } else {
-          console.log(res.error)
-          this.noError = false
-          setTimeout(() => this.noError = null, 3000)
-        }
-      })
+        .then((res) => {
+          if (res.error.code === 0) {
+            store.set('login', this.userLogin)
+            store.set('password', this.userPW)
+            this.$router.push('/userInfo')
+          } else {
+            this.noError = false
+            setTimeout(() => this.noError = null, 3000)
+          }
+        })
     }
   }
 }
