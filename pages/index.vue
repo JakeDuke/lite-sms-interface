@@ -17,7 +17,7 @@
         <b-form-input
           id="input-2"
           v-model="userPW"
-          type="text"
+          type="password"
           required
           placeholder="Password"
         />

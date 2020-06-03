@@ -1,23 +1,70 @@
 <template>
-  <div>
-    <div class="user-main-info my-5">
-      <h3>{{ login }}</h3>
-      <img src="https://via.placeholder.com/150" alt="">
-    </div>
-    <b-tabs content-class="mt-3">
-      <b-tab title="Account" active>
-        <b-table hover :fields="accountFields" :items="accounts" :responsive="true" outlined />
-      </b-tab>
-      <b-tab title="Payment Info">
-        <b-table hover :items="getPaymentInfo" :responsive="true" outlined :stacked="true" />
-      </b-tab>
-      <b-tab title="Address">
-        <b-table hover :items="addresses" :responsive="true" outlined :stacked="true" />
-      </b-tab>
-      <b-tab title="Contact">
-        <b-table hover :items="contacts" :responsive="true" outlined />
-      </b-tab>
-    </b-tabs>
+  <div class="page-wrap">
+    <b-row>
+      <b-col>
+        <div class="user-main-info">
+          <img src="https://via.placeholder.com/150" alt="">
+          <h3>{{ login }}</h3>
+        </div>
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col>
+        <b-tabs class="tabs">
+          <b-tab title="Account" active>
+            <b-table
+              hover
+              :fields="accountFields"
+              :items="accounts"
+              :responsive="true"
+              outlined
+              :stacked="true"
+            />
+          </b-tab>
+          <b-tab title="Payment Info">
+            <b-table hover :items="getPaymentInfo" :responsive="true" outlined :stacked="true" />
+          </b-tab>
+          <b-tab title="Address">
+            <b-table hover :items="addresses" :responsive="true" outlined :stacked="true" />
+          </b-tab>
+          <b-tab title="Contact">
+            <b-table hover :items="contacts" :responsive="true" outlined :stacked="true" />
+          </b-tab>
+        </b-tabs>
+      </b-col>
+      <b-col>
+        <b-form @submit.prevent="sendSms" class="sms-send-form">
+          <b-form-group
+            id="input-group-1"
+            label="Send SMS"
+            label-for="input-phone"
+          >
+            <b-form-input
+              id="input-phone"
+              v-model="phoneNumber"
+              type="text"
+              required
+              placeholder="Phone number"
+            />
+            <br>
+            <b-form-textarea
+              id="input-text"
+              v-model="smsText"
+              rows="3"
+              max-rows="6"
+              required
+              placeholder="SMS text"
+            />
+          </b-form-group>
+          <b-form-invalid-feedback :state="noError">
+            Error occurred, try again later
+          </b-form-invalid-feedback>
+          <b-button type="submit" variant="primary">
+            Send SMS
+          </b-button>
+        </b-form>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -28,11 +75,14 @@ import store from 'store2'
 export default {
   data () {
     return {
+      url: 'https://api.profisms.cz/index.php?',
       noError: true,
       login: '',
       accounts: [],
       addresses: [],
-      contacts: []
+      contacts: [],
+      phoneNumber: '',
+      smsText: ''
     }
   },
 
@@ -66,13 +116,29 @@ export default {
       const login = store.get('login')
       const password = store.get('password')
       const pw = md5(md5(password) + call)
-      this.$axios.$get(`https://api.profisms.cz/index.php?CTRL=user_info&_service=general&_login=${login}&_password=${pw}&_call=${call}`)
+      this.$axios.$get(`${this.url}CTRL=user_info&_service=general&_login=${login}&_password=${pw}&_call=${call}`)
         .then((res) => {
           console.log(res)
           this.accounts = res.data.account
           this.addresses = res.data.address
           this.contacts = res.data.contact
           this.login = res.data.login
+        })
+    },
+    sendSms () {
+      const { call } = this.$store.state
+      const password = store.get('password')
+      const pw = md5(md5(password) + call)
+      console.log(pw)
+      this.$axios.$post(`${this.url}CTRL=sms&_login=user&_password=${pw}&_service=sms&_call=${call}&text=${this.smsText}&msisdn=${this.phoneNumber}`)
+        .then((res) => {
+          if (res.error.code === 0) {
+            this.smsText = ''
+            this.phoneNumber = ''
+          } else {
+            console.log(res.error)
+            this.noError = false
+          }
         })
     }
   },
@@ -83,11 +149,23 @@ export default {
 }
 </script>
 
-<style>
-.user-main-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+<style lang="scss" scoped>
+.page-wrap {
+  margin-bottom: auto;
+  padding: 30px 0;
+
+  .user-main-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .sms-send-form {
+    text-align: center;
+    max-width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 </style>
